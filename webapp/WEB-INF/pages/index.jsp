@@ -290,8 +290,7 @@
                         webSocketUrl : webSocketUrl,
                         webSocketPort : webSocketPort,
                         tournamentLobbyUpdateInterval : 10000,
-              //        playerApiBaseUrl : "${playerApiBaseUrl}",
-                        playerApiBaseUrl : "http://famepoker.com:8080/famews-1.0.0/gameRestService",
+                        playerApiBaseUrl : "http://[SERVER_NAME]:8080/famews-1.0.0/gameRestService",
                         operatorApiBaseUrl : "${operatorApiBaseUrl}",
                         secure : ${secureConnection}
                     });

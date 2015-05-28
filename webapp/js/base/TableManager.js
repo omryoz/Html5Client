@@ -269,7 +269,6 @@ Poker.TableManager = Class.extend({
             table.myPlayerSeat = seat;
         }
         table.getLayoutManager().onPlayerAdded(seat,p);
-        if(Poker.MyPlayer.sessionToken!=null) {
             Poker.AppCtx.getPlayerApi().requestPlayerProfile(playerId,Poker.MyPlayer.sessionToken,
                 function(profile) {
                     self.updatePlayerProfile(playerId,table,profile);
@@ -278,10 +277,6 @@ Poker.TableManager = Class.extend({
                     self.updatePlayerProfile(playerId,table,null);
                 }
             );
-        } else {
-            self.updatePlayerProfile(playerId,table,null);
-            console.log("No loginToken available to request player info from player api");
-        }
     },
     updatePlayerProfile : function(playerId,table,profile) {
         if(profile!=null) {
