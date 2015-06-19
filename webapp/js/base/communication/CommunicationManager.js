@@ -142,7 +142,7 @@ Poker.CommunicationManager = Class.extend({
 
 
         console.log("Connector connect: ", this.webSocketUrl, this.webSocketPort);
-        
+
         var useCometd = $.url().param("cometd") != undefined;
         var isSafari5 = function isSafari5() {
             var safari =  !!navigator.userAgent.match(' Safari/') && !navigator.userAgent.match(' Chrom') && !!navigator.userAgent.match(' Version/5.');
@@ -151,7 +151,7 @@ Poker.CommunicationManager = Class.extend({
             }
             return safari;
         };
-        
+
         if (useCometd || isSafari5()) {
             console.log("Using cometd adapter as fallback");
             this.connector.connect("FIREBASE.CometdAdapter", this.webSocketUrl, this.webSocketPort, "cometd", this.secure, function() {
@@ -172,18 +172,51 @@ Poker.CommunicationManager = Class.extend({
      * @param {String} username
      * @param {String} password
      */
-    doLogin : function(username,password) {
+    doLogin : function(username,password, avatar, hasLegalAge,authType) {
         Poker.MyPlayer.password = password;
-        
+
         if (Poker.MyPlayer.pureToken) {
         	console.log("pure token");
         	var tokenArray = utf8.toByteArray(Poker.MyPlayer.loginToken);
         	this.connector.login("", "", Poker.SkinConfiguration.operatorId, tokenArray);
         } else {
-        	this.connector.login(username, password, Poker.SkinConfiguration.operatorId);
+			var loginData = "ageverificationdone"; // "rejectedageverification";
+			if (hasLegalAge == true) {
+			   loginData = "ageverificationdone";
+				if (authType == 5) {
+					loginData += ";5";
+					loginData += ";"+password;
+					loginData += ";"+avatar;
+				} else {
+					loginData += ";1";
+					loginData += ";123456789";
+					loginData += ";NotNeeded";
+				}
+				//alert('login data ' + loginData);
+				var dataArray = utf8.toByteArray(loginData);
+
+				//	alert('inside haslegalage');
+				//	alert(ageVerificationArray);
+					this.connector.login(username, password, Poker.SkinConfiguration.operatorId,dataArray);
+			} else {
+				if (authType == 5) {
+					loginData += ";5";
+					loginData += ";"+password;
+					loginData += ";"+avatar;
+				} else {
+					loginData += ";1";
+					loginData += ";123456789";
+					loginData += ";NotNeeded";
+				}
+				//alert('login data ' + loginData);
+				var dataArray2 = utf8.toByteArray(loginData);
+
+				this.connector.login(username, password, Poker.SkinConfiguration.operatorId,dataArray2);
+			}
         }
     },
-    
+
+
 
     handlePacket : function (packet) {
         var tournamentId = -1;
@@ -385,6 +418,14 @@ Poker.CommunicationManager = Class.extend({
             case com.cubeia.games.poker.io.protocol.DealPublicCards.CLASSID:
                 pokerPacketHandler.handleDealPublicCards(protocolObject);
                 break;
+            case com.cubeia.games.poker.io.protocol.StartDealingPocketCards.CLASSID:
+            	console.log("beginDealingPocketCards");
+                pokerPacketHandler.beginDealingPocketCards();
+                break;
+            case com.cubeia.games.poker.io.protocol.StopDealingPocketCards.CLASSID:
+            	console.log("endDealingPocketCards");
+                pokerPacketHandler.endDealingPocketCards();
+                break;
             case com.cubeia.games.poker.io.protocol.DeckInfo.CLASSID:
                 console.log("UNHANDLED PO DeckInfo");
                 console.log(protocolObject);
@@ -531,7 +572,7 @@ var CustomConnector = function(a,b,c,d) {
 var LongPollingTransportImpl = function() {
     var _super = new org.cometd.LongPollingTransport();
     var that = org.cometd.Transport.derive(_super);
-    
+
     var _setHeaders = function(xhr, headers) {
         var headerName;
         if (headers) {
@@ -542,10 +583,10 @@ var LongPollingTransportImpl = function() {
                 xhr.setRequestHeader(headerName, headers[headerName])
             }
         }
-    };                
-    
+    };
+
     that.xhrSend = function(packet) {
-        return $.ajax({url: packet.url, async: packet.sync !== true, type: "POST", contentType: "application/json;charset=UTF-8", data: packet.body,withCredentials: true, 
+        return $.ajax({url: packet.url, async: packet.sync !== true, type: "POST", contentType: "application/json;charset=UTF-8", data: packet.body,withCredentials: true,
         	beforeSend: function(xhr) {
                 _setHeaders(xhr, packet.headers);
                 return true

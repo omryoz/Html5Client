@@ -65,6 +65,7 @@ Poker.AccountPageManager = Class.extend({
         $(".logout-link").click(function() {
             self.closeAccountOverlay();
             self.logout();
+			self.fbLogoutUser();
         });
 
         Poker.AppCtx.getProfileManager().addProfileChangeListener(
@@ -107,6 +108,15 @@ Poker.AccountPageManager = Class.extend({
     displayDefaultAvatar : function(playerId){
         $(".user-panel-avatar").addClass("avatar" + (playerId % 9));
     },
+    fbLogoutUser : function() {
+		FB.getLoginStatus(function(response) {
+			if (response && response.status === 'connected') {
+				FB.logout(function(response) {
+					document.location.reload();
+				});
+			}
+		});
+	},
     logout : function() {
         $.ga._trackEvent("user_navigation", "clicked_logout");
         Poker.Utils.removeStoredUser();
